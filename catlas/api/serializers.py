@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate, hashers
 from django.contrib.auth.models import User
 
+from api.models import Board, Post
+
 from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,3 +31,15 @@ class LoginUserSerializer(serializers.Serializer):
             return user
 
         raise serializers.ValidationError('Unable to log in with provided credential.')
+
+class PostSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Post
+        fields = ('id', 'post_type', 'title', 'date_created', 'views', 'content', 'username')
+
+class CreatePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ('id', 'post_type', 'title', 'date_created', 'views', 'content', 'user')

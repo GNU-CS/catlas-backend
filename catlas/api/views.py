@@ -1,16 +1,16 @@
+from datetime import datetime
 from hashlib import sha256
 from secrets import token_hex
 
 from django.contrib.auth.models import User
 
-from rest_framework import generics
-from rest_framework import status
-
+from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 
 from knox.auth import AuthToken
 
 from api import serializers
+from api.models import Board, Post
 
 # Create your views here.
 
@@ -55,3 +55,32 @@ class ResetAPI(generics.GenericAPIView):
         # Implement E-mail authentication
 
         return Response({}, status=status.HTTP_200_OK)
+
+class PostViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = serializers.PostSerializer
+
+class CreatePostAPI(generics.GenericAPIView):
+    serializer_class = serializers.CreatePostSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            post_data = {
+                'post_type': int(Board.TALKS),
+                'title': request.data['title'],
+                'date_created': datetime.now(),
+                'views': 0,
+                'content': request.data['content'],
+                'user': User.objects.get(username=request.data['username']).pk
+            }
+
+            serializer = self.get_serializer(data=post_data)
+
+            serializer.is_valid(raise_exception=True)
+
+            serializer.save()
+
+            return Response({}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
