@@ -3,11 +3,14 @@ from hashlib import sha256
 from secrets import token_hex
 
 from django.contrib.auth.models import User
+from django.http.response import Http404
 
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from knox.auth import AuthToken
+from knox.auth import AuthToken, TokenAuthentication
 
 from api import serializers
 from api.models import Board, Post
@@ -56,14 +59,12 @@ class ResetAPI(generics.GenericAPIView):
 
         return Response({}, status=status.HTTP_200_OK)
 
-class PostViewSet(viewsets.ReadOnlyModelViewSet):
+class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
 
-class CreatePostAPI(generics.GenericAPIView):
-    serializer_class = serializers.CreatePostSerializer
-
-    def post(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=False, authentication_classes=(TokenAuthentication,), permission_classes=(IsAuthenticated,))
+    def write(self, request):
         try:
             post_data = {
                 'post_type': int(Board.TALKS),
@@ -80,7 +81,45 @@ class CreatePostAPI(generics.GenericAPIView):
 
             serializer.save()
 
-            return Response({}, status=status.HTTP_201_CREATED)
+            return Response({
+                'success': 'Post successfully created!'
+            }, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({
+                'error': 'Invalid value!'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Add IsOwner permission
+    @action(methods=['PATCH'], detail=True, authentication_classes=(TokenAuthentication,), permission_classes=[IsAuthenticated])
+    def modify(self, request, pk=None):
+        try:
+            post = self.get_object()
+
+            post.content = request.data['content']
+
+            post.save()
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+        except AssertionError as e:
+            return Response({
+                'error': 'Invalid value!'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    # Add IsOwner permission
+    @action(methods=['DELETE'], detail=True, authentication_classes=(TokenAuthentication,), permission_classes=[IsAuthenticated])
+    def delete(self, request, pk=None):
+        try:
+            post = self.get_object()
+
+            post.delete()
+
+            return Response({
+                'success': 'Post successfully deleted!'
+            }, status=status.HTTP_204_NO_CONTENT)
+
+        except AssertionError:
+            return Response({
+                'error': 'Cannot delete all post at once!'
+            }, status=status.HTTP_400_BAD_REQUEST)

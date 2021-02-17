@@ -37,9 +37,4 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'post_type', 'title', 'date_created', 'views', 'content', 'username')
-
-class CreatePostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ('id', 'post_type', 'title', 'date_created', 'views', 'content', 'user')
+        fields = '__all__'
