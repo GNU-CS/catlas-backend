@@ -72,7 +72,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
                 'date_created': datetime.now(),
                 'views': 0,
                 'content': request.data['content'],
-                'user': User.objects.get(username=request.data['username']).pk
+                'user': request.data['user']
             }
 
             serializer = self.get_serializer(data=post_data)
