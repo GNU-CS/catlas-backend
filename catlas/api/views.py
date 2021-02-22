@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 from secrets import token_hex
 
@@ -69,7 +69,7 @@ class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
             post_data = {
                 'post_type': int(Board.TALKS),
                 'title': request.data['title'],
-                'date_created': datetime.now(),
+                'date_created': datetime.now(timezone.utc),
                 'views': 0,
                 'content': request.data['content'],
                 'user': request.data['user']
