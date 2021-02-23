@@ -59,6 +59,12 @@ class ResetAPI(generics.GenericAPIView):
 
         return Response({}, status=status.HTTP_200_OK)
 
+class CheckAPI(generics.GenericAPIView):
+    def post(self, request, *args, **kwargs):
+        return Response({
+            'detail': 'Valid token.'
+        }, status=status.HTTP_200_OK)
+
 class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
