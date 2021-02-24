@@ -33,8 +33,11 @@ class LoginUserSerializer(serializers.Serializer):
         raise serializers.ValidationError('Unable to log in with provided credential.')
 
 class PostSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source='user.username')
-
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ('id', 'title', 'date_created', 'views', 'content', 'user')
+
+class ListPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ('id', 'title', 'date_created', 'views', 'user')
