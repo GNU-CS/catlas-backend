@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.http.response import Http404
 
 from rest_framework import generics, mixins, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -65,7 +65,26 @@ class CheckAPI(generics.GenericAPIView):
             'detail': 'Valid token.'
         }, status=status.HTTP_200_OK)
 
-class PostViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class PostViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Post.objects.filter(post_type=Board.TALKS)
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.ListPostSerializer
+        else:
+            return serializers.PostSerializer
+
+    @authentication_classes(TokenAuthentication)
+    @permission_classes()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+class PostViewSet2(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
 
