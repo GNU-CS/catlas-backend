@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, hashers
 from django.contrib.auth.models import User
 
-from api.models import Board, Post
+from api.models import Post
 
 from rest_framework import serializers
 
