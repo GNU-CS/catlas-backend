@@ -1,4 +1,8 @@
+from django.dispatch import receiver
+from django.http import HttpRequest
 from django.urls import reverse
+
+from django_rest_passwordreset.signals import reset_password_token_created
 
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -36,10 +40,22 @@ class RegistrationAPI(generics.GenericAPIView):
 
             user = serializer.save()
 
-            return Response({'created': f'{reverse("register")}{user.id}/'}, status=status.HTTP_201_CREATED)
+            return Response({'created': f'{user.id}/'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class ResetAPI2:
+    @receiver(reset_password_token_created)
+    def password_reset_token_created(sender, reset_password_token, *args, **kwargs):
+        context = {
+            'current_user': reset_password_token.user,
+            'username': reset_password_token.user.username,
+            'email': reset_password_token.user.email,
+            'reset_password_url': f'{reverse("password_reset:reset-password-request")}?token={reset_password_token.key}'
+        }
+
+        print(context)
 
 class ResetAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
