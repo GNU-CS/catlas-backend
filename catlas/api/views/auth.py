@@ -1,4 +1,7 @@
-from rest_framework import generics
+from django.urls import reverse
+
+from rest_framework import generics, status
+from rest_framework.response import Response
 
 from knox.auth import AuthToken
 
@@ -33,7 +36,7 @@ class RegistrationAPI(generics.GenericAPIView):
 
             user = serializer.save()
 
-            return Response({}, status=status.HTTP_201_CREATED)
+            return Response({'created': f'{reverse("register")}{user.id}/'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
