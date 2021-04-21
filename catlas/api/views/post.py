@@ -4,8 +4,6 @@ from rest_framework import generics, mixins, status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from knox.auth import TokenAuthentication
-
 from api import serializers
 from api.models import Post
 from api.permissions import IsOwner
@@ -27,7 +25,6 @@ class GetAPI(mixins.RetrieveModelMixin, generics.GenericAPIView):
 class CreateAPI(generics.GenericAPIView):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -53,7 +50,6 @@ class CreateAPI(generics.GenericAPIView):
 class UpdateAPI(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated & IsOwner]
 
     def patch(self, request, *args, **kwargs):
@@ -70,7 +66,6 @@ class UpdateAPI(mixins.UpdateModelMixin, generics.GenericAPIView):
 class DeleteAPI(mixins.DestroyModelMixin, generics.GenericAPIView):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated & IsOwner]
 
     def delete(self, request, *args, **kwargs):
